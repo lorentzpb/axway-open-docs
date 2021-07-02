@@ -428,6 +428,18 @@ In this configuration model, the `Regex` element includes the following attribut
 * `multi`: Specifies whether the match is multi-line. In multi-line mode, `^` matches the beginning of line, and `$` matches the end of line. Defaults to `false`.
 * `utf`: Specifies whether the data being parsed is checked for valid UTF-8 characters. Defaults to `true`. `RawRedactor` cannot be used with non-UTF-8 characters.
 
+### Use of regular expressions
+
+The way regular expression patterns are written can result in performance drop and excessive use of resources (memory, stack size, CPU). An official PCRE ducomentation page is providing technical details ([PCRE PERFORMANCE](https://www.pcre.org/original/doc/html/pcreperform.html)).
+
+Some basic guidance rules to write efficient regular expressions could be:
+
+* Avoid using excessive recursion ([PCRE RECURSIVE PATTERNS](https://www.pcre.org/original/doc/html/pcrepattern.html#SEC23)) and back references ([PCRE BACK REFERENCES](https://www.pcre.org/original/doc/html/pcrepattern.html#SEC19)).
+* Use non-greedy patterns ([PCRE REPETITION](https://www.pcre.org/original/doc/html/pcrepattern.html#SEC17)).
+* Avoid complexity: using different specific patterns for different needs is generally more efficient than using a single huge complex and generic expression.
+
+Use of PCRE recursive pattern is known to be able to cause stack overflows, which leads to process crash. On startup, API Gateway is evaluating the maximum recursion limit to use. That maximum recursion limit is then dynamically lowered whenever stack size is estimated to be too low for the ongoing redaction.
+
 ### Example: Redact credit card details from raw text
 
 This section shows some configured regular expressions and the behavior with specific raw message content. The following expression specifies to redact a defined group:
